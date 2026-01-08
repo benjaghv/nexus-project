@@ -408,6 +408,22 @@
                 displayEvents();
             };
 
+            window.deleteEvent = async (eventId) => {
+                if (!confirm('¿Eliminar este evento?')) return;
+                try {
+                    const response = await fetch(`/api/events/${eventId}`, { method: 'DELETE' });
+                    if (response.ok) {
+                        allEvents = allEvents.filter(e => e.id !== eventId);
+                        displayEvents();
+                    } else {
+                        alert('Error al eliminar el evento');
+                    }
+                } catch (error) {
+                    console.error('Delete error:', error);
+                    alert('Error de conexión al eliminar');
+                }
+            };
+
             document.getElementById('shellMethod').addEventListener('change', updatePayloadVisibility);
 
             window.sendManualRequest = async () => {
