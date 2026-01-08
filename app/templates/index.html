@@ -19,84 +19,460 @@
 </head>
 
 <body class="bg-slate-950 text-slate-200 min-h-screen">
-
     <nav
         class="border-b border-slate-800 p-4 flex justify-between items-center bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
         <div class="flex items-center gap-2">
             <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-            <h1 class="text-xl font-bold tracking-tighter tracking-widest text-white">NEXUS_<span
-                    class="text-green-500">HUB</span></h1>
+            <h1 class="text-xl font-bold tracking-widest text-white">NEXUS_<span class="text-green-500">HUB</span></h1>
         </div>
-        <div class="text-xs text-slate-500">v1.0.0 | System Status: <span class="text-green-400">Online</span></div>
+        <div class="flex items-center gap-3">
+            <button onclick="openInfoModal()"
+                class="group relative px-3 py-2 text-slate-400 hover:text-blue-400 transition-all duration-300 border border-slate-700 hover:border-blue-500/50 rounded-lg bg-slate-800/30 hover:bg-slate-800/60">
+                <span class="text-xs font-medium flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Info
+                </span>
+            </button>
+            <button onclick="openNexusShell()"
+                class="group relative px-4 py-2 text-green-400 hover:text-green-300 transition-all duration-300 border border-green-500/30 hover:border-green-500/60 rounded-lg bg-green-500/5 hover:bg-green-500/10 hover:shadow-lg hover:shadow-green-500/20">
+                <span class="text-xs font-bold flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Shell
+                </span>
+            </button>
+            <div class="text-xs text-slate-500 border-l border-slate-700 pl-3">v1.0.0 | <span
+                    class="text-green-400">●</span> Online</div>
+        </div>
     </nav>
 
     <main class="max-w-6xl mx-auto p-6">
         <header class="mb-8">
-            <h2 class="text-slate-400 text-sm mb-1 uppercase tracking-widest">Live Integration Feed</h2>
-            <p class="text-2xl font-semibold text-white">Capturando peticiones entrantes...</p>
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-slate-400 text-sm mb-1 uppercase tracking-widest">Live Integration Feed</h2>
+                    <p class="text-2xl font-semibold text-white">Capturando peticiones entrantes...</p>
+                </div>
+                <button id="favoritesFilterBtn" onclick="toggleFavoritesFilter()" class="px-4 py-2 text-slate-400 hover:text-yellow-400 transition-all duration-300 border border-slate-700 hover:border-yellow-500/50 rounded-lg bg-slate-800/30 hover:bg-yellow-500/10">
+                    <span class="text-sm font-medium flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                        <span id="filterText">Favoritos</span>
+                    </span>
+                </button>
+            </div>
         </header>
-
         <div id="webhook-container" class="space-y-4">
-            <div class="p-8 border border-dashed border-slate-800 rounded-xl text-center text-slate-600">
-                Esperando el primer Webhook... envía un POST a <code
-                    class="bg-slate-800 text-slate-300 px-2 py-1 rounded">/webhook</code>
+            <div id="emptyState"
+                class="flex flex-col items-center justify-center p-12 border border-dashed border-slate-800 rounded-xl text-center">
+                <svg class="w-20 h-20 text-slate-700 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                </svg>
+                <p class="text-slate-600 mb-2">Esperando el primer Webhook...</p>
+                <p class="text-slate-700 text-sm">envía un POST a <code
+                        class="bg-slate-800 text-slate-300 px-2 py-1 rounded">/webhook</code></p>
             </div>
         </div>
     </main>
 
+    <!-- Nexus Shell Modal -->
+    <div id="nexusShellModal"
+        class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="relative flex gap-4 items-start">
+            <div class="bg-slate-900 border-2 border-green-500 rounded-xl max-w-2xl w-full p-6 shadow-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-green-400">⚡ NEXUS SHELL</h2>
+                    <button onclick="closeNexusShell()" class="text-slate-400 hover:text-white text-2xl">&times;</button>
+                </div>
+                <div class="flex justify-between items-center mb-4">
+                    <p class="text-slate-400 text-sm">Envía peticiones HTTP a cualquier endpoint</p>
+                    <button onclick="toggleExamples()" class="px-3 py-1.5 text-purple-400 hover:text-purple-300 transition-all duration-300 border border-purple-500/30 hover:border-purple-500/60 rounded-lg bg-purple-500/5 hover:bg-purple-500/10 text-xs font-medium">
+                        💡 Ejemplos
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div class="flex gap-3">
+                        <div class="w-32">
+                            <label class="block text-slate-300 text-sm font-bold mb-2">Método</label>
+                            <select id="shellMethod" class="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-200 focus:border-green-500 focus:outline-none font-bold">
+                                <option value="POST">POST</option>
+                                <option value="GET">GET</option>
+                            </select>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-slate-300 text-sm font-bold mb-2">Target URL</label>
+                            <input type="text" id="shellUrl" placeholder="https://api.example.com/endpoint"
+                                class="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-200 focus:border-green-500 focus:outline-none">
+                        </div>
+                    </div>
+                    <div id="payloadSection">
+                        <label class="block text-slate-300 text-sm font-bold mb-2">JSON Payload <span class="text-slate-500 text-xs font-normal">(solo para POST)</span></label>
+                        <textarea id="shellPayload" rows="10" placeholder='{"key": "value"}' class="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-200 font-mono text-sm focus:border-green-500 focus:outline-none"></textarea>
+                    </div>
+                    <div id="shellResponse" class="hidden">
+                        <label class="block text-slate-300 text-sm font-bold mb-2">Response</label>
+                        <div class="bg-black/40 border border-slate-700 rounded p-3 max-h-48 overflow-y-auto">
+                            <pre id="shellResponseContent" class="text-xs text-green-400 font-mono"></pre>
+                        </div>
+                    </div>
+                    <button onclick="sendManualRequest()"
+                        class="w-full px-4 py-3 text-green-400 hover:text-green-300 transition-all duration-300 border border-green-500/30 hover:border-green-500/60 rounded-lg bg-green-500/5 hover:bg-green-500/10 hover:shadow-lg hover:shadow-green-500/20 font-bold">
+                        🚀 ENVIAR
+                    </button>
+                </div>
+            </div>
+
+            <!-- Examples Side Panel -->
+            <div id="examplesPopup" class="hidden bg-slate-900 border-2 border-purple-500 rounded-xl w-72 p-4 shadow-2xl animate-in slide-in-from-right duration-300">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-purple-400 font-bold text-sm">💡 Ejemplos</h3>
+                    <button onclick="toggleExamples()" class="text-slate-400 hover:text-white text-xl">&times;</button>
+                </div>
+                <div class="space-y-3 max-h-96 overflow-y-auto">
+                    <div>
+                        <p class="text-slate-400 text-xs mb-1.5 font-bold">URLs:</p>
+                        <div class="space-y-1">
+                            <button onclick="useExample('url', 'https://jsonplaceholder.typicode.com/posts')" class="w-full text-left px-2 py-1.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 hover:border-purple-500/50 rounded text-xs text-slate-300 transition-all">
+                                🌐 JSONPlaceholder
+                            </button>
+                            <button onclick="useExample('url', 'https://httpbin.org/post')" class="w-full text-left px-2 py-1.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 hover:border-purple-500/50 rounded text-xs text-slate-300 transition-all">
+                                � HTTPBin
+                            </button>
+                            <button onclick="useExample('url', 'https://webhook.site/unique-id')" class="w-full text-left px-2 py-1.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 hover:border-purple-500/50 rounded text-xs text-slate-300 transition-all">
+                                📨 Webhook.site
+                            </button>
+                        </div>
+                    </div>
+                    <div class="border-t border-slate-700 pt-3">
+                        <p class="text-slate-400 text-xs mb-1.5 font-bold">Payloads:</p>
+                        <div class="space-y-1">
+                            <button onclick="usePayloadExample(0)" class="w-full text-left px-2 py-1.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 hover:border-purple-500/50 rounded text-xs text-slate-300 transition-all">
+                                📝 Post Simple
+                            </button>
+                            <button onclick="usePayloadExample(1)" class="w-full text-left px-2 py-1.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 hover:border-purple-500/50 rounded text-xs text-slate-300 transition-all">
+                                👤 Usuario
+                            </button>
+                            <button onclick="usePayloadExample(2)" class="w-full text-left px-2 py-1.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 hover:border-purple-500/50 rounded text-xs text-slate-300 transition-all">
+                                ⚡ Nexus
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Modal -->
+    <div id="infoModal"
+        class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border-2 border-blue-500 rounded-xl max-w-xl w-full p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-blue-400">ℹ️ ¿Para qué sirve esto?</h2>
+                <button onclick="closeInfoModal()" class="text-slate-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <div class="space-y-4 text-sm">
+                <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
+                    <h3 class="text-green-400 font-bold mb-2">📝 Historial de Webhooks</h3>
+                    <p class="text-slate-300">Guarda automáticamente todos los webhooks que recibe tu servidor para que
+                        puedas revisarlos después.</p>
+                </div>
+                <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
+                    <h3 class="text-yellow-400 font-bold mb-2">🔍 Debugging</h3>
+                    <p class="text-slate-300">Revisa payloads que llegaron cuando no estabas mirando. Útil para depurar
+                        integraciones.</p>
+                </div>
+                <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
+                    <h3 class="text-purple-400 font-bold mb-2">📋 Copiar y Reutilizar</h3>
+                    <p class="text-slate-300">Copia webhooks reales para probarlos de nuevo en Nexus Shell o en tus
+                        propias pruebas.</p>
+                </div>
+                <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
+                    <h3 class="text-red-400 font-bold mb-2">📊 Auditoría</h3>
+                    <p class="text-slate-300">Registro de todas las integraciones externas que se comunicaron con tu
+                        sistema.</p>
+                </div>
+            </div>
+            <button onclick="closeInfoModal()"
+                class="w-full px-4 py-3 text-blue-400 hover:text-blue-300 transition-all duration-300 border border-blue-500/30 hover:border-blue-500/60 rounded-lg bg-blue-500/5 hover:bg-blue-500/10 hover:shadow-lg hover:shadow-blue-500/20 font-medium mt-4">Entendido</button>
+        </div>
+    </div>
+
     <script>
-        const container = document.getElementById('webhook-container');
-        const socket = new WebSocket(`ws://${window.location.host}/ws`);
-
-        // Función única para crear la interfaz de cada tarjeta
-        function createCard(data) {
-            const card = document.createElement('div');
-            // Diseño moderno con borde verde para resaltar el éxito de la captura
-            card.className = "bg-slate-900 border border-slate-800 p-5 rounded-xl mb-4 border-l-4 border-l-green-500 shadow-lg animate-in fade-in duration-500 hover:border-green-400/50 transition-all";
-
-            card.innerHTML = `
-            <div class="flex justify-between items-center mb-3">
-                <span class="bg-green-500/20 text-green-400 text-xs font-bold px-2 py-1 rounded border border-green-500/30">
-                    ${data.method}
-                </span>
-                <span class="text-slate-500 text-xs font-mono tracking-tight">ID: #${data.id} | ${data.time}</span>
-            </div>
-            <div class="bg-black/40 p-3 rounded-lg border border-slate-800">
-                <pre class="text-sm text-blue-300 font-mono overflow-x-auto scrollbar-hide"><code>${JSON.stringify(data.payload, null, 2)}</code></pre>
-            </div>
-        `;
-            return card;
+        async function checkAuth() {
+            const token = localStorage.getItem('nexus_token');
+            if (!token) {
+                window.location.href = '/setup';
+                return false;
+            }
+            try {
+                const response = await fetch('/api/auth/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: token })
+                });
+                if (!response.ok) {
+                    localStorage.removeItem('nexus_token');
+                    window.location.href = '/setup';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('Auth error:', error);
+                window.location.href = '/setup';
+                return false;
+            }
         }
 
-        // 1. CARGA INICIAL: Traemos los últimos 10 webhooks de la base de datos SQLite
-        fetch('/api/history')
-            .then(response => response.json())
-            .then(events => {
-                if (events.length > 0) {
-                    container.innerHTML = ''; // Limpiamos el mensaje de "Esperando..."
-                    // Los insertamos en orden para que el más nuevo quede arriba
-                    events.forEach(event => {
-                        container.appendChild(createCard(event));
-                    });
-                }
-            })
-            .catch(err => console.error("Error cargando historial:", err));
+        checkAuth().then(authenticated => {
+            if (authenticated) initDashboard();
+        });
 
-        // 2. TIEMPO REAL: Escuchamos nuevos eventos vía WebSocket
-        socket.onmessage = function (event) {
-            const data = JSON.parse(event.data);
-            console.log("Nuevo webhook detectado:", data);
+        function initDashboard() {
+            const container = document.getElementById('webhook-container');
+            const socket = new WebSocket(`ws://${window.location.host}/ws`);
+            let showOnlyFavorites = false;
+            let allEvents = [];
 
-            if (container.innerHTML.includes('Esperando')) {
-                container.innerHTML = '';
+            function createCard(data) {
+                const card = document.createElement('div');
+                const isFavorite = data.is_favorite || false;
+                const isGet = data.method === 'GET';
+                const methodColor = isGet ? 'yellow' : 'green';
+                const borderColor = isFavorite ? 'border-l-yellow-500' : (isGet ? 'border-l-yellow-500' : 'border-l-green-500');
+                card.className = `bg-slate-900 border border-slate-800 p-5 rounded-xl mb-4 border-l-4 ${borderColor} shadow-lg`;
+                card.setAttribute('data-event-id', data.id);
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-${methodColor}-500/20 text-${methodColor}-400 text-xs font-bold px-2 py-1 rounded border border-${methodColor}-500/30">${data.method}</span>
+                            ${isFavorite ? '<span class="text-yellow-400 text-xs">⭐</span>' : ''}
+                        </div>
+                        <span class="text-slate-500 text-xs font-mono">ID: #${data.id} | ${data.time}</span>
+                    </div>
+                    <div class="bg-black/40 p-3 rounded-lg border border-slate-800 mb-3">
+                        <pre class="text-sm text-blue-300 font-mono overflow-x-auto"><code>${JSON.stringify(data.payload, null, 2)}</code></pre>
+                    </div>
+                    <div class="flex gap-2 justify-end">
+                        <button onclick="toggleFavorite(${data.id})" class="bg-slate-800 hover:bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded text-xs font-bold transition-all border border-slate-700">${isFavorite ? '★' : '☆'} Favorito</button>
+                        <button onclick="copyPayload(${data.id})" class="bg-slate-800 hover:bg-blue-500/20 text-blue-400 px-3 py-1 rounded text-xs font-bold transition-all border border-slate-700">📋 Copiar</button>
+                        <button onclick="deleteEvent(${data.id})" class="bg-slate-800 hover:bg-red-500/20 text-red-400 px-3 py-1 rounded text-xs font-bold transition-all border border-slate-700">🗑 Eliminar</button>
+                    </div>
+                `;
+                return card;
             }
 
-            // Insertamos la nueva tarjeta al principio de la lista
-            container.prepend(createCard(data));
-        };
+            function loadHistory() {
+                fetch('/api/history').then(r => r.json()).then(events => {
+                    allEvents = events;
+                    displayEvents();
+                });
+            }
 
-        socket.onopen = () => console.log("Nexus conectado y escuchando...");
-        socket.onerror = (error) => console.error("Error de conexión WebSocket:", error);
+            function displayEvents() {
+                const eventsToShow = showOnlyFavorites 
+                    ? allEvents.filter(e => e.is_favorite) 
+                    : allEvents;
+                
+                if (eventsToShow.length > 0) {
+                    container.innerHTML = '';
+                    eventsToShow.forEach(e => container.appendChild(createCard(e)));
+                } else {
+                    if (showOnlyFavorites) {
+                        container.innerHTML = `
+                            <div class="flex flex-col items-center justify-center p-12 border border-dashed border-slate-800 rounded-xl text-center">
+                                <svg class="w-20 h-20 text-slate-700 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                </svg>
+                                <p class="text-slate-600 mb-2">No hay favoritos aún</p>
+                                <p class="text-slate-700 text-sm">Marca eventos como favoritos para verlos aquí</p>
+                            </div>
+                        `;
+                    } else {
+                        showEmptyState();
+                    }
+                }
+            }
+
+            function showEmptyState() {
+                container.innerHTML = `
+                    <div id="emptyState" class="flex flex-col items-center justify-center p-12 border border-dashed border-slate-800 rounded-xl text-center">
+                        <svg class="w-20 h-20 text-slate-700 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                        </svg>
+                        <p class="text-slate-600 mb-2">Esperando el primer Webhook...</p>
+                        <p class="text-slate-700 text-sm">envía un POST a <code
+                                class="bg-slate-800 text-slate-300 px-2 py-1 rounded">/webhook</code></p>
+                    </div>
+                `;
+            }
+
+            loadHistory();
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                allEvents.unshift(data);
+                if (!showOnlyFavorites) {
+                    if (container.querySelector('#emptyState')) container.innerHTML = '';
+                    container.prepend(createCard(data));
+                }
+            };
+
+            window.toggleFavorite = async (eventId) => {
+                const response = await fetch(`/api/events/${eventId}/favorite`, { method: 'PATCH' });
+                if (response.ok) loadHistory();
+            };
+
+            window.toggleFavoritesFilter = () => {
+                showOnlyFavorites = !showOnlyFavorites;
+                const btn = document.getElementById('favoritesFilterBtn');
+                const filterText = document.getElementById('filterText');
+                
+                if (showOnlyFavorites) {
+                    btn.classList.remove('text-slate-400', 'hover:text-yellow-400', 'border-slate-700', 'hover:border-yellow-500/50', 'bg-slate-800/30', 'hover:bg-yellow-500/10');
+                    btn.classList.add('text-yellow-400', 'border-yellow-500/50', 'bg-yellow-500/20');
+                    filterText.textContent = 'Ver Todos';
+                } else {
+                    btn.classList.remove('text-yellow-400', 'border-yellow-500/50', 'bg-yellow-500/20');
+                    btn.classList.add('text-slate-400', 'hover:text-yellow-400', 'border-slate-700', 'hover:border-yellow-500/50', 'bg-slate-800/30', 'hover:bg-yellow-500/10');
+                    filterText.textContent = 'Favoritos';
+                }
+                
+                displayEvents();
+            };
+
+            window.deleteEvent = async (eventId) => {
+                if (!confirm('¿Eliminar este evento?')) return;
+                const response = await fetch(`/api/events/${eventId}`, { method: 'DELETE' });
+                if (response.ok) {
+                    const card = document.querySelector(`[data-event-id="${eventId}"]`);
+                    if (card) {
+                        card.style.opacity = '0';
+                        setTimeout(() => {
+                            card.remove();
+                            if (container.children.length === 0) showEmptyState();
+                        }, 300);
+                    }
+                }
+            };
+
+            window.openNexusShell = () => {
+                document.getElementById('nexusShellModal').classList.remove('hidden');
+                document.getElementById('shellResponse').classList.add('hidden');
+                updatePayloadVisibility();
+            };
+
+            window.updatePayloadVisibility = () => {
+                const method = document.getElementById('shellMethod').value;
+                const payloadSection = document.getElementById('payloadSection');
+                if (method === 'GET') {
+                    payloadSection.style.opacity = '0.5';
+                    payloadSection.style.pointerEvents = 'none';
+                } else {
+                    payloadSection.style.opacity = '1';
+                    payloadSection.style.pointerEvents = 'auto';
+                }
+            };
+
+            document.getElementById('shellMethod').addEventListener('change', updatePayloadVisibility);
+
+            window.closeNexusShell = () => {
+                document.getElementById('nexusShellModal').classList.add('hidden');
+                document.getElementById('shellUrl').value = '';
+                document.getElementById('shellPayload').value = '';
+                document.getElementById('examplesPopup').classList.add('hidden');
+            };
+
+            window.toggleExamples = () => {
+                const popup = document.getElementById('examplesPopup');
+                popup.classList.toggle('hidden');
+            };
+
+            const payloadExamples = [
+                {"title": "Test Post", "body": "This is a test", "userId": 1},
+                {"event": "user.created", "data": {"id": 123, "name": "John Doe", "email": "john@example.com"}, "timestamp": "2026-01-08T10:00:00Z"},
+                {"sistema": "nexus", "action": "test", "datos": {"mensaje": "Prueba desde Nexus Shell", "prioridad": "alta"}}
+            ];
+
+            window.useExample = (type, value) => {
+                if (type === 'url') {
+                    document.getElementById('shellUrl').value = value;
+                }
+                document.getElementById('examplesPopup').classList.add('hidden');
+            };
+
+            window.usePayloadExample = (index) => {
+                const payload = payloadExamples[index];
+                const formatted = JSON.stringify(payload, null, 2);
+                document.getElementById('shellPayload').value = formatted;
+                document.getElementById('examplesPopup').classList.add('hidden');
+            };
+
+            window.sendManualRequest = async () => {
+                const url = document.getElementById('shellUrl').value;
+                const method = document.getElementById('shellMethod').value;
+                const payloadText = document.getElementById('shellPayload').value;
+                
+                if (!url) { alert('Ingresa una URL'); return; }
+                
+                let payload = {};
+                if (method === 'POST' && payloadText.trim()) {
+                    try { payload = JSON.parse(payloadText); }
+                    catch (e) { alert('JSON inválido'); return; }
+                }
+                
+                try {
+                    const response = await fetch('/api/send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url, payload, method })
+                    });
+                    const result = await response.json();
+                    document.getElementById('shellResponseContent').textContent = JSON.stringify(result, null, 2);
+                    document.getElementById('shellResponse').classList.remove('hidden');
+                    if (response.ok) {
+                        setTimeout(() => {
+                            closeNexusShell();
+                            loadHistory();
+                        }, 2000);
+                    }
+                } catch (error) {
+                    document.getElementById('shellResponseContent').textContent = JSON.stringify({ error: error.message }, null, 2);
+                    document.getElementById('shellResponse').classList.remove('hidden');
+                }
+            };
+
+            window.openInfoModal = () => {
+                document.getElementById('infoModal').classList.remove('hidden');
+            };
+
+            window.closeInfoModal = () => {
+                document.getElementById('infoModal').classList.add('hidden');
+            };
+
+            window.copyPayload = async (eventId) => {
+                const card = document.querySelector(`[data-event-id="${eventId}"]`);
+                if (!card) return;
+                const codeElement = card.querySelector('pre code');
+                const payload = codeElement.textContent;
+                try {
+                    await navigator.clipboard.writeText(payload);
+                    const btn = card.querySelector('button[onclick*="copyPayload"]');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '✅ Copiado';
+                    setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+                } catch (error) {
+                    alert('Error al copiar');
+                }
+            };
+        }
     </script>
 </body>
 

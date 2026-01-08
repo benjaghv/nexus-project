@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus | Setup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 min-h-screen flex items-center justify-center">
+    
+    <div class="max-w-xl w-full p-6">
+        <!-- Setup inicial -->
+        <div id="setupView" class="bg-slate-900 border-2 border-green-500 rounded-xl p-8 shadow-2xl">
+            <div class="text-center mb-8">
+                <div class="flex items-center justify-center gap-2 mb-4">
+                    <div class="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+                    <h1 class="text-3xl font-bold tracking-widest text-white">NEXUS_<span class="text-green-500">HUB</span></h1>
+                </div>
+                <p class="text-slate-400 text-sm">Configuración Inicial</p>
+            </div>
+
+            <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-6 mb-6">
+                <h2 class="text-green-400 font-bold mb-3">🔐 Generar Token de Máquina</h2>
+                <p class="text-slate-300 text-sm mb-4">
+                    Este es el primer acceso. Genera un token único para esta máquina.
+                </p>
+                <button onclick="generateToken()" 
+                    class="w-full px-4 py-3 text-green-400 hover:text-green-300 transition-all duration-300 border border-green-500/30 hover:border-green-500/60 rounded-lg bg-green-500/5 hover:bg-green-500/10 hover:shadow-lg hover:shadow-green-500/20 font-bold">
+                    ⚡ Generar Token
+                </button>
+            </div>
+
+            <div id="tokenDisplay" class="hidden bg-slate-800/50 border border-green-700 rounded-lg p-6">
+                <h3 class="text-green-400 font-bold mb-3">✅ Token Generado</h3>
+                <div class="bg-black/40 border border-slate-700 rounded p-3 mb-4">
+                    <code id="generatedToken" class="text-green-300 text-sm break-all"></code>
+                </div>
+                <div class="bg-yellow-900/20 border border-yellow-700 rounded p-3 mb-4">
+                    <p class="text-yellow-300 text-xs">
+                        ⚠️ <strong>Importante:</strong> Guarda este token de forma segura. Lo necesitarás para acceder al dashboard.
+                    </p>
+                </div>
+                <button onclick="copyToken()" 
+                    class="w-full px-4 py-2 text-blue-400 hover:text-blue-300 transition-all duration-300 border border-blue-500/30 hover:border-blue-500/60 rounded-lg bg-blue-500/5 hover:bg-blue-500/10 hover:shadow-lg hover:shadow-blue-500/20 font-medium mb-2">
+                    📋 Copiar Token
+                </button>
+                <button onclick="goToDashboard()" 
+                    class="w-full px-4 py-2 text-green-400 hover:text-green-300 transition-all duration-300 border border-green-500/30 hover:border-green-500/60 rounded-lg bg-green-500/5 hover:bg-green-500/10 hover:shadow-lg hover:shadow-green-500/20 font-bold">
+                    🚀 Ir al Dashboard
+                </button>
+            </div>
+        </div>
+
+        <!-- Vista de login -->
+        <div id="loginView" class="hidden bg-slate-900 border-2 border-blue-500 rounded-xl p-8 shadow-2xl">
+            <div class="text-center mb-8">
+                <div class="flex items-center justify-center gap-2 mb-4">
+                    <div class="w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
+                    <h1 class="text-3xl font-bold tracking-widest text-white">NEXUS_<span class="text-blue-500">HUB</span></h1>
+                </div>
+                <p class="text-slate-400 text-sm">Acceso Protegido</p>
+            </div>
+
+            <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
+                <h2 class="text-blue-400 font-bold mb-3">🔑 Ingresa tu Token</h2>
+                <input type="password" id="tokenInput" placeholder="Pega tu token aquí" 
+                    class="w-full bg-slate-800 border border-slate-700 rounded px-4 py-3 text-slate-200 focus:border-blue-500 focus:outline-none mb-4 font-mono text-sm">
+                <button onclick="verifyToken()" 
+                    class="w-full px-4 py-3 text-blue-400 hover:text-blue-300 transition-all duration-300 border border-blue-500/30 hover:border-blue-500/60 rounded-lg bg-blue-500/5 hover:bg-blue-500/10 hover:shadow-lg hover:shadow-blue-500/20 font-bold">
+                    🔓 Acceder
+                </button>
+            </div>
+
+            <div id="errorMessage" class="hidden mt-4 bg-red-900/20 border border-red-700 rounded-lg p-4">
+                <p class="text-red-400 text-sm"></p>
+            </div>
+
+            <div class="mt-4 bg-slate-800/30 border border-slate-700/50 rounded-lg p-3">
+                <p class="text-slate-400 text-xs mb-1">💡 <strong>¿Olvidaste tu token?</strong></p>
+                <p class="text-slate-500 text-xs mb-2">Esto podría ayudarte a recuperarlo:</p>
+                <code class="block bg-black/40 text-green-400 text-xs px-2 py-1 rounded font-mono">docker exec nexus-project-nexus-1 cat /code/data/.nexus_token</code>
+            </div>
+        </div>
+
+        <div class="mt-6 text-center text-slate-500 text-xs">
+            <p>🔒 Nexus Integration Hub v1.0.0</p>
+        </div>
+    </div>
+
+    <script>
+        let currentToken = null;
+
+        // Verificar estado al cargar
+        window.onload = async function() {
+            // Verificar si ya tiene token guardado
+            const savedToken = localStorage.getItem('nexus_token');
+            if (savedToken) {
+                try {
+                    const response = await fetch('/api/auth/verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: savedToken })
+                    });
+                    
+                    if (response.ok) {
+                        window.location.href = '/';
+                        return;
+                    }
+                } catch (e) {
+                    console.log('Token inválido, requiere nuevo login');
+                }
+            }
+
+            // Verificar si el sistema ya está configurado
+            try {
+                const response = await fetch('/api/auth/status');
+                const data = await response.json();
+                
+                if (data.configured) {
+                    showLoginView();
+                } else {
+                    showSetupView();
+                }
+            } catch (error) {
+                console.error('Error checking status:', error);
+                showSetupView();
+            }
+        };
+
+        function showSetupView() {
+            document.getElementById('setupView').classList.remove('hidden');
+            document.getElementById('loginView').classList.add('hidden');
+        }
+
+        function showLoginView() {
+            document.getElementById('setupView').classList.add('hidden');
+            document.getElementById('loginView').classList.remove('hidden');
+        }
+
+        async function generateToken() {
+            try {
+                const response = await fetch('/api/auth/setup', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentToken = data.token;
+                    document.getElementById('generatedToken').textContent = data.token;
+                    document.getElementById('tokenDisplay').classList.remove('hidden');
+                    localStorage.setItem('nexus_token', data.token);
+                } else {
+                    alert('Error: ' + data.detail);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al generar el token');
+            }
+        }
+
+        function copyToken() {
+            const token = document.getElementById('generatedToken').textContent;
+            navigator.clipboard.writeText(token).then(() => {
+                alert('✅ Token copiado al portapapeles');
+            });
+        }
+
+        function goToDashboard() {
+            window.location.href = '/';
+        }
+
+        async function verifyToken() {
+            const token = document.getElementById('tokenInput').value;
+            
+            if (!token.trim()) {
+                showError('Por favor ingresa un token');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: token })
+                });
+                
+                if (response.ok) {
+                    localStorage.setItem('nexus_token', token);
+                    window.location.href = '/';
+                } else {
+                    const data = await response.json();
+                    showError(data.detail || 'Token inválido');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexión');
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.querySelector('p').textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => {
+                errorDiv.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Enter para verificar token
+        document.addEventListener('DOMContentLoaded', function() {
+            const tokenInput = document.getElementById('tokenInput');
+            if (tokenInput) {
+                tokenInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        verifyToken();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

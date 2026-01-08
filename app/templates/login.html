@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus | Authentication</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 min-h-screen flex items-center justify-center">
+    
+    <div class="max-w-2xl w-full p-6">
+        <div class="bg-slate-900 border-2 border-green-500 rounded-xl p-8 shadow-2xl">
+            <div class="text-center mb-8">
+                <div class="flex items-center justify-center gap-2 mb-4">
+                    <div class="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+                    <h1 class="text-3xl font-bold tracking-widest text-white">NEXUS_<span class="text-green-500">AUTH</span></h1>
+                </div>
+                <p class="text-slate-400 text-sm">Sistema de Autenticación Challenge-Response</p>
+            </div>
+
+            <div id="step1" class="space-y-6">
+                <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
+                    <h2 class="text-green-400 font-bold mb-2">📋 Paso 1: Solicitar Challenge</h2>
+                    <p class="text-slate-300 text-sm mb-4">Ingresa un valor aleatorio para generar el challenge</p>
+                    <input type="text" id="challengeInput" placeholder="Ej: mi-valor-secreto-123" 
+                        class="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-200 focus:border-green-500 focus:outline-none mb-3">
+                    <button onclick="requestChallenge()" 
+                        class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-2 rounded transition-all">
+                        🔐 Solicitar Challenge
+                    </button>
+                </div>
+
+                <div id="challengeResponse" class="hidden bg-slate-800/50 border border-green-700 rounded-lg p-4">
+                    <h3 class="text-green-400 font-bold mb-2">✅ Challenge Recibido</h3>
+                    <div class="space-y-2 text-sm">
+                        <div>
+                            <span class="text-slate-400">Tu Challenge:</span>
+                            <code id="challengeValue" class="block bg-black/40 p-2 rounded mt-1 text-green-300"></code>
+                        </div>
+                        <div class="bg-blue-900/20 border border-blue-700 rounded p-3 mt-3">
+                            <p class="text-blue-300 text-xs font-bold mb-2">📝 Instrucciones:</p>
+                            <ol class="text-slate-300 text-xs space-y-1 list-decimal list-inside">
+                                <li>Concatena: <code class="bg-black/40 px-1">challenge + secret_key</code></li>
+                                <li>Calcula el hash SHA256 del resultado</li>
+                                <li>Toma los primeros 16 caracteres del hash hexadecimal</li>
+                                <li>Ingrésalo en el Paso 2</li>
+                            </ol>
+                            <p class="text-yellow-400 text-xs mt-2">⚠️ Necesitas conocer la secret_key para generar el hash correcto</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="step2" class="hidden space-y-6">
+                <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
+                    <h2 class="text-blue-400 font-bold mb-2">🔑 Paso 2: Verificar y Obtener Token</h2>
+                    <p class="text-slate-300 text-sm mb-4">Ingresa el hash calculado para obtener tu token de acceso</p>
+                    
+                    <label class="block text-slate-400 text-sm mb-2">Tu Respuesta (Hash):</label>
+                    <input type="text" id="responseHash" placeholder="Ingresa los primeros 16 caracteres del hash" 
+                        class="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-slate-200 focus:border-blue-500 focus:outline-none mb-3">
+                    
+                    <button onclick="verifyAndGetToken()" 
+                        class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 rounded transition-all">
+                        ✨ Verificar y Obtener Token
+                    </button>
+                </div>
+
+                <div id="tokenResponse" class="hidden bg-slate-800/50 border border-green-700 rounded-lg p-4">
+                    <h3 class="text-green-400 font-bold mb-2">🎉 ¡Autenticación Exitosa!</h3>
+                    <div class="space-y-2 text-sm">
+                        <div>
+                            <span class="text-slate-400">Token de Acceso:</span>
+                            <code id="accessToken" class="block bg-black/40 p-2 rounded mt-1 text-green-300 break-all"></code>
+                        </div>
+                        <div class="text-slate-500 text-xs mt-3">
+                            ⏱️ Válido por 24 horas
+                        </div>
+                    </div>
+                    <button onclick="redirectToDashboard()" 
+                        class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-3 rounded-lg mt-4 transition-all">
+                        🚀 Acceder al Dashboard
+                    </button>
+                </div>
+
+                <div id="errorResponse" class="hidden bg-red-900/20 border border-red-700 rounded-lg p-4">
+                    <h3 class="text-red-400 font-bold mb-2">❌ Error de Autenticación</h3>
+                    <p id="errorMessage" class="text-slate-300 text-sm"></p>
+                    <button onclick="resetAuth()" 
+                        class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded mt-3 transition-all">
+                        🔄 Intentar de Nuevo
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-6 text-center" id="step1Footer">
+                <button onclick="showStep2()" id="btnStep2" class="hidden text-green-400 hover:text-green-300 text-sm underline">
+                    Ya tengo el hash → Ir al Paso 2
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-6 text-center text-slate-500 text-xs">
+            <p>🔒 Nexus Integration Hub v1.0.0 | Sistema de Autenticación Segura</p>
+        </div>
+    </div>
+
+    <script>
+        let currentChallenge = null;
+
+        async function requestChallenge() {
+            const challengeInput = document.getElementById('challengeInput').value;
+            
+            if (!challengeInput.trim()) {
+                alert('Por favor ingresa un valor para el challenge');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/request-token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ challenge: challengeInput })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    currentChallenge = result.challenge;
+                    document.getElementById('challengeValue').textContent = result.challenge;
+                    document.getElementById('challengeResponse').classList.remove('hidden');
+                    document.getElementById('btnStep2').classList.remove('hidden');
+                } else {
+                    alert('Error: ' + result.detail);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al solicitar el challenge');
+            }
+        }
+
+        function showStep2() {
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step1Footer').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+        }
+
+        async function verifyAndGetToken() {
+            const responseHash = document.getElementById('responseHash').value;
+            
+            if (!responseHash.trim()) {
+                alert('Por favor ingresa el hash calculado');
+                return;
+            }
+
+            if (!currentChallenge) {
+                alert('Primero debes solicitar un challenge');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        challenge: currentChallenge,
+                        response: responseHash 
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('accessToken').textContent = result.token;
+                    document.getElementById('tokenResponse').classList.remove('hidden');
+                    document.getElementById('errorResponse').classList.add('hidden');
+                    
+                    localStorage.setItem('nexus_token', result.token);
+                } else {
+                    document.getElementById('errorMessage').textContent = result.detail || 'Hash incorrecto';
+                    document.getElementById('errorResponse').classList.remove('hidden');
+                    document.getElementById('tokenResponse').classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('errorMessage').textContent = 'Error de conexión';
+                document.getElementById('errorResponse').classList.remove('hidden');
+            }
+        }
+
+        function redirectToDashboard() {
+            window.location.href = '/';
+        }
+
+        function resetAuth() {
+            document.getElementById('step1').classList.remove('hidden');
+            document.getElementById('step1Footer').classList.remove('hidden');
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('challengeInput').value = '';
+            document.getElementById('responseHash').value = '';
+            document.getElementById('challengeResponse').classList.add('hidden');
+            document.getElementById('errorResponse').classList.add('hidden');
+            document.getElementById('btnStep2').classList.add('hidden');
+            currentChallenge = null;
+        }
+
+        // Verificar si ya tiene token al cargar
+        window.onload = function() {
+            const token = localStorage.getItem('nexus_token');
+            if (token) {
+                if (confirm('Ya tienes un token guardado. ¿Ir al dashboard?')) {
+                    window.location.href = '/';
+                }
+            }
+        };
+    </script>
+</body>
+</html>

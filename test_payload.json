@@ -1,0 +1,8 @@
+{
+  "sistema": "ERP_SAP",
+  "action": "crear_cliente",
+  "datos": {
+    "nombre": "Fundo La Invernada",
+    "id": 4552
+  }
+}
