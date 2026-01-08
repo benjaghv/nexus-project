@@ -230,13 +230,73 @@
             }
         }
 
+        // Funciones de modales disponibles globalmente
+        window.openNexusShell = () => {
+            document.getElementById('nexusShellModal').classList.remove('hidden');
+            document.getElementById('shellResponse').classList.add('hidden');
+            updatePayloadVisibility();
+        };
+
+        window.closeNexusShell = () => {
+            document.getElementById('nexusShellModal').classList.add('hidden');
+            document.getElementById('shellUrl').value = '';
+            document.getElementById('shellPayload').value = '';
+            document.getElementById('examplesPopup').classList.add('hidden');
+        };
+
+        window.openInfoModal = () => {
+            document.getElementById('infoModal').classList.remove('hidden');
+        };
+
+        window.closeInfoModal = () => {
+            document.getElementById('infoModal').classList.add('hidden');
+        };
+
+        window.toggleExamples = () => {
+            const popup = document.getElementById('examplesPopup');
+            popup.classList.toggle('hidden');
+        };
+
+        window.updatePayloadVisibility = () => {
+            const method = document.getElementById('shellMethod').value;
+            const payloadSection = document.getElementById('payloadSection');
+            if (method === 'GET') {
+                payloadSection.style.opacity = '0.5';
+                payloadSection.style.pointerEvents = 'none';
+            } else {
+                payloadSection.style.opacity = '1';
+                payloadSection.style.pointerEvents = 'auto';
+            }
+        };
+
+        const payloadExamples = [
+            {"title": "Test Post", "body": "This is a test", "userId": 1},
+            {"event": "user.created", "data": {"id": 123, "name": "John Doe", "email": "john@example.com"}, "timestamp": "2026-01-08T10:00:00Z"},
+            {"sistema": "nexus", "action": "test", "datos": {"mensaje": "Prueba desde Nexus Shell", "prioridad": "alta"}}
+        ];
+
+        window.useExample = (type, value) => {
+            if (type === 'url') {
+                document.getElementById('shellUrl').value = value;
+            }
+            document.getElementById('examplesPopup').classList.add('hidden');
+        };
+
+        window.usePayloadExample = (index) => {
+            const payload = payloadExamples[index];
+            const formatted = JSON.stringify(payload, null, 2);
+            document.getElementById('shellPayload').value = formatted;
+            document.getElementById('examplesPopup').classList.add('hidden');
+        };
+
         checkAuth().then(authenticated => {
             if (authenticated) initDashboard();
         });
 
         function initDashboard() {
             const container = document.getElementById('webhook-container');
-            const socket = new WebSocket(`ws://${window.location.host}/ws`);
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const socket = new WebSocket(`${wsProtocol}//${window.location.host}/ws`);
             let showOnlyFavorites = false;
             let allEvents = [];
 
@@ -348,72 +408,7 @@
                 displayEvents();
             };
 
-            window.deleteEvent = async (eventId) => {
-                if (!confirm('¿Eliminar este evento?')) return;
-                const response = await fetch(`/api/events/${eventId}`, { method: 'DELETE' });
-                if (response.ok) {
-                    const card = document.querySelector(`[data-event-id="${eventId}"]`);
-                    if (card) {
-                        card.style.opacity = '0';
-                        setTimeout(() => {
-                            card.remove();
-                            if (container.children.length === 0) showEmptyState();
-                        }, 300);
-                    }
-                }
-            };
-
-            window.openNexusShell = () => {
-                document.getElementById('nexusShellModal').classList.remove('hidden');
-                document.getElementById('shellResponse').classList.add('hidden');
-                updatePayloadVisibility();
-            };
-
-            window.updatePayloadVisibility = () => {
-                const method = document.getElementById('shellMethod').value;
-                const payloadSection = document.getElementById('payloadSection');
-                if (method === 'GET') {
-                    payloadSection.style.opacity = '0.5';
-                    payloadSection.style.pointerEvents = 'none';
-                } else {
-                    payloadSection.style.opacity = '1';
-                    payloadSection.style.pointerEvents = 'auto';
-                }
-            };
-
             document.getElementById('shellMethod').addEventListener('change', updatePayloadVisibility);
-
-            window.closeNexusShell = () => {
-                document.getElementById('nexusShellModal').classList.add('hidden');
-                document.getElementById('shellUrl').value = '';
-                document.getElementById('shellPayload').value = '';
-                document.getElementById('examplesPopup').classList.add('hidden');
-            };
-
-            window.toggleExamples = () => {
-                const popup = document.getElementById('examplesPopup');
-                popup.classList.toggle('hidden');
-            };
-
-            const payloadExamples = [
-                {"title": "Test Post", "body": "This is a test", "userId": 1},
-                {"event": "user.created", "data": {"id": 123, "name": "John Doe", "email": "john@example.com"}, "timestamp": "2026-01-08T10:00:00Z"},
-                {"sistema": "nexus", "action": "test", "datos": {"mensaje": "Prueba desde Nexus Shell", "prioridad": "alta"}}
-            ];
-
-            window.useExample = (type, value) => {
-                if (type === 'url') {
-                    document.getElementById('shellUrl').value = value;
-                }
-                document.getElementById('examplesPopup').classList.add('hidden');
-            };
-
-            window.usePayloadExample = (index) => {
-                const payload = payloadExamples[index];
-                const formatted = JSON.stringify(payload, null, 2);
-                document.getElementById('shellPayload').value = formatted;
-                document.getElementById('examplesPopup').classList.add('hidden');
-            };
 
             window.sendManualRequest = async () => {
                 const url = document.getElementById('shellUrl').value;
@@ -447,14 +442,6 @@
                     document.getElementById('shellResponseContent').textContent = JSON.stringify({ error: error.message }, null, 2);
                     document.getElementById('shellResponse').classList.remove('hidden');
                 }
-            };
-
-            window.openInfoModal = () => {
-                document.getElementById('infoModal').classList.remove('hidden');
-            };
-
-            window.closeInfoModal = () => {
-                document.getElementById('infoModal').classList.add('hidden');
             };
 
             window.copyPayload = async (eventId) => {
