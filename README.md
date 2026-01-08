@@ -1,4 +1,4 @@
-# 🚀 Nexus Integration Hub
+# 🚀 Nexus Hub
 
 **Nexus** es un interceptor de webhooks en tiempo real diseñado para capturar, visualizar y debugear integraciones de API. Permite a los desarrolladores inspeccionar payloads entrantes al instante sin configurar herramientas complejas, facilitando el monitoreo de flujos de datos entre sistemas heterogéneos.
 
